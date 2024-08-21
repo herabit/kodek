@@ -1,0 +1,15 @@
+[package]
+name = "kodek"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# bytes = { version = "1.7.1", default-features = false, optional = true }
+
+[features]
+default = ["std"]
+
+std = ["alloc"]
+alloc = []
+
+# bytes = ["alloc", "dep:bytes"]
