@@ -6,18 +6,22 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-pub mod endian;
-pub use endian::Endian;
-
 mod size;
-pub use size::Size;
 
+/// Types and traits relating to byte ordering.
+pub mod endian;
+
+/// Types and traits relating to decoders.
 pub mod decoder;
 
-// mod zeroable;
-// pub use zeroable::*;
+/// Encoders and decoders for binary data.
+pub mod binary;
 
-// mod bytes;
-// pub use bytes::*;
+#[doc(inline)]
+pub use decoder::Decoder;
 
-// mod array;
+#[doc(inline)]
+pub use size::Size;
+
+#[doc(inline)]
+pub use endian::Endian;

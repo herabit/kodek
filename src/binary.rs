@@ -1,7 +1,8 @@
 use core::{char::CharTryFromError, fmt};
 
-use super::{Decoder, Error, Size};
+use crate::decoder::{Decoder, Error as DError, Result as DResult};
 use crate::endian::{ByteOrder, Endian, NativeEndian};
+use crate::Size;
 
 /// A binary [`Decoder`] that is capable of reading a [`prim@bool`]
 /// in a specified byte order.
@@ -37,12 +38,12 @@ impl<B: ByteOrder> Decoder for Bool<B> {
     }
 
     #[inline]
-    fn decode<'s>(&mut self, src: &mut &'s [u8]) -> super::Result<'s, Self> {
+    fn decode<'s>(&mut self, src: &mut &'s [u8]) -> DResult<'s, Self> {
         let mut _src = *src;
 
         U8::new(self.byte_order)
             .decode(&mut _src)
-            .map_err(Error::from_infallible)
+            .map_err(DError::from_infallible)
             .and_then(|bits| match bits {
                 0 => {
                     *src = _src;
@@ -52,7 +53,7 @@ impl<B: ByteOrder> Decoder for Bool<B> {
                     *src = _src;
                     Ok(true)
                 }
-                _ => Err(Error::Fatal {
+                _ => Err(DError::Fatal {
                     error: BoolError(()),
                 }),
             })
@@ -105,18 +106,18 @@ impl<B: ByteOrder> Decoder for Char<B> {
     }
 
     #[inline]
-    fn decode<'s>(&mut self, src: &mut &'s [u8]) -> super::Result<'s, Self> {
+    fn decode<'s>(&mut self, src: &mut &'s [u8]) -> DResult<'s, Self> {
         let mut _src = *src;
 
         U32::new(self.byte_order)
             .decode(&mut _src)
-            .map_err(Error::from_infallible)
+            .map_err(DError::from_infallible)
             .and_then(|bits| match char::try_from(bits) {
                 Ok(ch) => {
                     *src = _src;
                     Ok(ch)
                 }
-                Err(error) => Err(Error::Fatal { error }),
+                Err(error) => Err(DError::Fatal { error }),
             })
     }
 }
@@ -174,9 +175,9 @@ macro_rules! define {
                 }
 
                 #[inline]
-                fn decode<'s>(&mut self, src: &mut &'s [u8]) -> super::Result<'s, Self> {
+                fn decode<'s>(&mut self, src: &mut &'s [u8]) -> DResult<'s, Self> {
                     let Some((bytes, rest)) = src.split_at_checked(Self::SIZE) else {
-                        return Err(Error::Incomplete { needed: Size::new(Self::SIZE - src.len()) });
+                        return Err(DError::Incomplete { needed: Size::new(Self::SIZE - src.len()) });
                     };
 
                     let bytes: [u8; $name::<()>::SIZE] = bytes.try_into().unwrap();

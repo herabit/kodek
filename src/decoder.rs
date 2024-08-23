@@ -2,9 +2,6 @@ use core::{convert::Infallible, fmt, write};
 
 use crate::Size;
 
-/// Various binary decoders.
-pub mod binary;
-
 #[allow(type_alias_bounds)]
 pub type Result<'s, D: Decoder> = ::core::result::Result<D::Item<'s>, Error<D::Error>>;
 
