@@ -6,8 +6,18 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-mod endian;
+pub mod endian;
 pub use endian::Endian;
 
-mod needed;
-pub use needed::Needed;
+mod size;
+pub use size::Size;
+
+pub mod decoder;
+
+// mod zeroable;
+// pub use zeroable::*;
+
+// mod bytes;
+// pub use bytes::*;
+
+// mod array;

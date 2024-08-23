@@ -2,46 +2,37 @@ use core::num::NonZeroUsize;
 
 /// Represents a **nonzero** amount of bytes
 /// that is required to perform some action.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[must_use]
-pub enum Needed {
-    /// The amount of bytes required is not known.
+pub enum Size {
+    /// The amount of bytes is not known.
     ///
-    /// # Buffers
-    ///
-    /// This signifies to any buffers that are too small that it should grow
-    /// by whatever their default growth factor is.
-    ///
-    /// # Readers
-    ///
-    /// This signifies to a reader that it should read as much data as it can.
+    /// In most environments this indicates that one should use whatever the
+    /// minimum nonzero amount is.
     #[default]
     Unknown,
     /// The amount of bytes required is exactly known.
-    ///
-    /// # Buffers
-    ///
-    /// This signifies to any buffers that are too small that they should grow
-    /// by exactly this amount.
-    ///
-    /// # Readers
-    ///
-    /// This signified to a reader that it needs to read exactly this amount.
     Known(NonZeroUsize),
 }
 
-impl Needed {
-    /// Create a new [`Needed`].
+impl Size {
+    /// The minimum amount of **nonzero** bytes.
+    pub const MIN: Size = Size::Known(NonZeroUsize::MIN);
+
+    /// The maximum amount of **nonzero** bytes.
+    pub const MAX: Size = Size::Known(NonZeroUsize::MAX);
+
+    /// Create a new [`Size`].
     ///
     /// # Returns
     ///
-    /// - `bytes_needed == 0` becomes [`Needed::Unknown`].
-    /// - `bytes_needed > 0` becomes [`Needed::Known`].
+    /// - `bytes == 0` becomes [`Size::Unknown`].
+    /// - `bytes > 0` becomes [`Size::Known`].
     #[inline]
-    pub const fn new(bytes_needed: usize) -> Needed {
-        match NonZeroUsize::new(bytes_needed) {
-            Some(bytes_needed) => Needed::Known(bytes_needed),
-            None => Needed::Unknown,
+    pub const fn new(bytes: usize) -> Size {
+        match NonZeroUsize::new(bytes) {
+            Some(bytes) => Size::Known(bytes),
+            None => Size::Unknown,
         }
     }
 
@@ -49,8 +40,8 @@ impl Needed {
     #[inline]
     pub const fn get(self) -> Option<NonZeroUsize> {
         match self {
-            Needed::Unknown => None,
-            Needed::Known(bytes_needed) => Some(bytes_needed),
+            Size::Unknown => None,
+            Size::Known(bytes) => Some(bytes),
         }
     }
 
@@ -59,8 +50,8 @@ impl Needed {
     #[must_use]
     pub const fn get_or(self, default: NonZeroUsize) -> NonZeroUsize {
         match self {
-            Needed::Unknown => default,
-            Needed::Known(bytes_needed) => bytes_needed,
+            Size::Unknown => default,
+            Size::Known(bytes) => bytes,
         }
     }
 
@@ -80,8 +71,8 @@ impl Needed {
         F: FnOnce() -> NonZeroUsize,
     {
         match self {
-            Needed::Unknown => f(),
-            Needed::Known(bytes_needed) => bytes_needed,
+            Size::Unknown => f(),
+            Size::Known(bytes) => bytes,
         }
     }
 
@@ -101,13 +92,13 @@ impl Needed {
 
     /// Maps the known needed amount by applying a closure to it.
     #[inline]
-    pub fn map<F>(self, f: F) -> Needed
+    pub fn map<F>(self, f: F) -> Size
     where
         F: FnOnce(NonZeroUsize) -> usize,
     {
         match self {
-            Needed::Unknown => Needed::Unknown,
-            Needed::Known(bytes_needed) => Needed::new(f(bytes_needed)),
+            Size::Unknown => Size::Unknown,
+            Size::Known(bytes) => Size::new(f(bytes)),
         }
     }
 }
