@@ -127,12 +127,12 @@ macro_rules! define {
         $vis:vis struct $name:ident<$ty:ident> {}
     )*) => {
         $(
-            $(#[$attr])*
             #[doc = ::core::concat!(
                 "A binary [`Decoder`] that is capable of reading a [`prim@",
                 ::core::stringify!($ty),
                 "`] in a specified byte order.",
             )]
+            $(#[$attr])*
             #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
             $vis struct $name<B: ByteOrder = NativeEndian> {
                 /// The byte order for this decoder.
